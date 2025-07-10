@@ -1,20 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
-// VYHODIŤ fallback hodnoty, nech to vyhodí chybu ak ENV nie sú zadané
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Tu natvrdo vlož hodnoty zo svojho .env
+const supabaseUrl = 'https://ddzmuxcavpgbzhirzlqt.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkem11eGNhdnBnYnpoaXJ6bHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzNDc0NjgsImV4cCI6MjA1NDkyMzQ2OH0.xBnN4V5BmxMMZgIUDo5YA95b8HW8R83maPUETxdMzxc';
 
-console.log('ENV URL:', supabaseUrl);
-console.log('ENV KEY:', supabaseAnonKey);
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('VITE_SUPABASE_URL alebo VITE_SUPABASE_ANON_KEY nie je zadané! Skontroluj nastavenie environment variables v Netlify alebo Vercel.');
-}
+console.log('Supabase URL:', supabaseUrl);
+console.log('Supabase Key:', supabaseAnonKey);
 
 // Vytvorenie Supabase klienta
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// (Voliteľné) jednoduchý test pripojenia
+// (voliteľné) Test pripojenia
 const testConnection = async (): Promise<void> => {
   try {
     console.log('Testing Supabase connection...');
