@@ -12,11 +12,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Vytvorenie Supabase klienta
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  global: {
-    headers: {}
-  }
-});
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // (Voliteľné) jednoduchý test pripojenia
 const testConnection = async (): Promise<void> => {
