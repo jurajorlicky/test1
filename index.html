@@ -54,8 +54,9 @@
       }
     </style>
 
-    <!-- Polyfills for Supabase -->
+    <!-- Polyfills for Supabase/Netlify browser build -->
     <script>
+      // Polyfill Headers for browser (mainly for Netlify/Vercel production)
       if (typeof Headers === 'undefined') {
         window.Headers = class {
           constructor(init = {}) {
@@ -103,6 +104,7 @@
         };
       }
 
+      // Polyfill Request
       if (typeof Request === 'undefined') {
         window.Request = class {
           constructor(input, init = {}) {
@@ -116,6 +118,7 @@
         };
       }
 
+      // Polyfill Response
       if (typeof Response === 'undefined') {
         window.Response = class {
           constructor(body, init = {}) {
@@ -134,6 +137,7 @@
         };
       }
 
+      // Global polyfills for Node.js-like stuff
       if (typeof global === 'undefined') {
         window.global = window;
       }
