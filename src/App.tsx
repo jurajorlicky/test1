@@ -20,12 +20,6 @@ const ErrorFallback = ({ error, resetError }: { error: Error; resetError: () => 
       >
         Skúsiť znova
       </button>
-      <details className="mt-4 text-left">
-        <summary className="cursor-pointer text-gray-500 text-sm">Technické detaily</summary>
-        <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
-          {error.message}
-        </pre>
-      </details>
     </div>
   </div>
 );
@@ -56,15 +50,17 @@ export default function App() {
       if (adminCacheRef.current[userId] !== undefined) {
         return adminCacheRef.current[userId];
       }
-      const { data: adminData, error: adminError } = await supabase
-        .from('admin_users')
-        .select('id')
-        .eq('id', userId)
-        .single();
+      
+      const { data: adminData, error: adminError } = await Promise.race([
+        supabase.from('admin_users').select('id').eq('id', userId).single(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Admin check timeout')), 2000))
+      ]) as any;
+      
       if (adminError && adminError.code !== 'PGRST116') {
         console.warn('Admin check error:', adminError.message);
         return false;
       }
+      
       const isAdminUser = !!adminData;
       adminCacheRef.current[userId] = isAdminUser;
       return isAdminUser;
@@ -76,28 +72,26 @@ export default function App() {
 
   const initializeAuth = useCallback(async () => {
     if (initializingRef.current) return;
+    
     try {
       initializingRef.current = true;
       setError(null);
       setAppError(null);
-      // Add timeout to prevent infinite loading
-      const authPromise = supabase.auth.getUser();
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Auth timeout')), 10000)
-      );
+      
+      // Quick auth check with timeout
       const { data: { user }, error: authError } = await Promise.race([
-        authPromise,
-        timeoutPromise
+        supabase.auth.getUser(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Auth timeout')), 3000))
       ]) as any;
 
       if (authError && authError.message !== 'Auth session missing!') {
         setUser(null);
         setIsAdmin(false);
-        setLoading(false);
         return;
       }
 
       setUser(user);
+      
       if (user) {
         try {
           const adminStatus = await checkAdminStatus(user.id);
@@ -110,29 +104,31 @@ export default function App() {
         adminCacheRef.current = {};
       }
     } catch (err: any) {
-      if (err.message.includes('timeout') || err.message.includes('fetch')) {
-        setUser(null);
-        setIsAdmin(false);
-      } else {
-        setError("Chyba pri načítavaní: " + err.message);
-        setAppError(err);
-      }
+      console.warn('Auth initialization error:', err.message);
       setUser(null);
       setIsAdmin(false);
+      
+      if (!err.message.includes('timeout')) {
+        setError("Chyba pri načítavaní: " + err.message);
+      }
     } finally {
       setLoading(false);
       initializingRef.current = false;
     }
   }, [checkAdminStatus]);
 
-  // Add global error handler
+  // Global error handler
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
+      console.error('Global error:', event.error);
       setAppError(event.error);
     };
+    
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('Unhandled rejection:', event.reason);
       setAppError(new Error(event.reason?.message || 'Unhandled promise rejection'));
     };
+    
     if (typeof window !== 'undefined') {
       window.addEventListener('error', handleError);
       window.addEventListener('unhandledrejection', handleUnhandledRejection);
@@ -146,26 +142,29 @@ export default function App() {
 
   useEffect(() => {
     let isMounted = true;
+    
     const initialize = async () => {
       if (isMounted) {
         await initializeAuth();
       }
     };
+    
+    // Quick initialization
     initialize();
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
+      
       try {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
+        
         if (currentUser) {
           if (event === 'SIGNED_IN') {
             adminCacheRef.current = {};
-            const adminStatus = await checkAdminStatus(currentUser.id);
-            setIsAdmin(adminStatus);
-          } else {
-            const adminStatus = await checkAdminStatus(currentUser.id);
-            setIsAdmin(adminStatus);
           }
+          const adminStatus = await checkAdminStatus(currentUser.id);
+          setIsAdmin(adminStatus);
         } else {
           setIsAdmin(false);
           adminCacheRef.current = {};
@@ -175,6 +174,7 @@ export default function App() {
         setIsAdmin(false);
       }
     });
+    
     return () => {
       isMounted = false;
       subscription.unsubscribe();
@@ -186,7 +186,18 @@ export default function App() {
     return <ErrorFallback error={appError} resetError={() => setAppError(null)} />;
   }
 
-  // --- ZOBRAZ LOGIN/UI IHNEĎ ---
+  // Quick loading screen
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-gray-50">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-600">Načítava sa...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Routes>
       <Route
@@ -198,14 +209,7 @@ export default function App() {
                 <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
                   Prihlásenie
                 </h1>
-                {/* Loading info pod loginom (nie blokujúce) */}
-                {loading && (
-                  <div className="mb-4 text-gray-500 text-center text-sm">
-                    Overujem prihlásenie...
-                  </div>
-                )}
                 <AuthForm />
-                {/* Error info pod loginom */}
                 {error && (
                   <div className="mt-4 p-2 bg-red-100 text-red-800 rounded text-center text-sm">
                     {error}

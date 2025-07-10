@@ -22,15 +22,6 @@ class ErrorBoundary extends React.Component<
     console.error('Application error:', error, errorInfo);
   }
 
-  componentDidMount() {
-    // Ensure global polyfills are available after mount
-    if (typeof (window as any).global === 'undefined') {
-      (window as any).global = window;
-    }
-    if (typeof (window as any).process === 'undefined') {
-      (window as any).process = { env: {} };
-    }
-  }
   render() {
     if (this.state.hasError) {
       return (
@@ -60,23 +51,6 @@ class ErrorBoundary extends React.Component<
           >
             Obnoviť stránku
           </button>
-          {this.state.error && (
-            <details style={{ marginTop: '20px', textAlign: 'left' }}>
-              <summary style={{ cursor: 'pointer', color: '#64748b' }}>
-                Technické detaily
-              </summary>
-              <pre style={{ 
-                marginTop: '10px', 
-                padding: '10px', 
-                backgroundColor: '#f1f5f9',
-                borderRadius: '4px',
-                fontSize: '12px',
-                overflow: 'auto'
-              }}>
-                {this.state.error.toString()}
-              </pre>
-            </details>
-          )}
         </div>
       );
     }
