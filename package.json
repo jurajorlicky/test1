@@ -6,10 +6,8 @@
 "scripts": {
   "dev": "vite",
   "build": "tsc && vite build",
-  "build:netlify": "npm run build",
-  "preview": "vite preview",
   "predeploy": "npm run build",
-  "deploy": "gh-pages -d dist"
+  "deploy": "gh-pages -d docs"
 },
   "dependencies": {
     "@heroicons/react": "^2.1.1",
