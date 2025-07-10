@@ -1,42 +1,28 @@
-// src/lib/supabase.ts
 import { createClient } from '@supabase/supabase-js';
 
-// Načítanie URL a ANON KEY buď z Vite env premenných, alebo fallback
-const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL
-  || 'https://ddzmuxcavpgbzhirzlqt.supabase.co';
-const supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY
-  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkem11eGNhdnBnYnpoaXJ6bHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzNDc0NjgsImV4cCI6MjA1NDkyMzQ2OH0.xBnN4V5BmxMMZgIUDo5YA95b8HW8R83maPUETxdMzxc';
+// VYHODIŤ fallback hodnoty, nech to vyhodí chybu ak ENV nie sú zadané
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-console.log('Supabase configuration:', {
-  url: supabaseUrl,
-  keyPrefix: supabaseAnonKey.substring(0, 20) + '...'
+console.log('ENV URL:', supabaseUrl);
+console.log('ENV KEY:', supabaseAnonKey);
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('VITE_SUPABASE_URL alebo VITE_SUPABASE_ANON_KEY nie je zadané! Skontroluj nastavenie environment variables v Netlify alebo Vercel.');
+}
+
+// Vytvorenie Supabase klienta
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: {
+    headers: {}
+  }
 });
 
-// Vytvorenie Supabase klienta s explicitným prázdnym global.headers
-export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey,
-  {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    },
-    global: {
-      headers: {}  // zabraňuje čítaniu undefined.headers
-    }
-  }
-);
-
-// (Voliteľné) jednoduchý test pripojenia, ktorý nebloķuje UI
+// (Voliteľné) jednoduchý test pripojenia
 const testConnection = async (): Promise<void> => {
   try {
     console.log('Testing Supabase connection...');
-    const { error } = await supabase
-      .from('admin_settings')
-      .select('*')
-      .limit(1);
+    const { error } = await supabase.from('admin_settings').select('*').limit(1);
     if (error) {
       console.warn('Supabase connection test warning:', error.message);
     } else {
@@ -48,7 +34,6 @@ const testConnection = async (): Promise<void> => {
   }
 };
 
-// Spustenie testu po 1 sekunde, aby sa UI načítalo bez zdržania
 if (typeof window !== 'undefined') {
   setTimeout(() => {
     testConnection().catch((err: unknown) => {
