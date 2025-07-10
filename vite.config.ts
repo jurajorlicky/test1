@@ -3,12 +3,12 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/',
+  base: '/test1/', // <- Názov repozitára (dôležité pre GitHub Pages!)
   build: {
     outDir: 'dist',
     sourcemap: false,
     minify: 'terser',
-    target: 'esnext', // DÔLEŽITÉ – musí byť esnext!
+    target: 'esnext',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -51,6 +51,6 @@ export default defineConfig({
     exclude: []
   },
   esbuild: {
-    target: 'esnext' // Taktiež tu!
+    target: 'esnext'
   }
 })
