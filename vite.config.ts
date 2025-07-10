@@ -8,7 +8,7 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     minify: 'terser',
-    target: 'es2015',
+    target: 'esnext', // DÔLEŽITÉ – musí byť esnext!
     rollupOptions: {
       output: {
         manualChunks: {
@@ -21,7 +21,7 @@ export default defineConfig({
     },
     terserOptions: {
       compress: {
-        drop_console: false, // Keep console logs for debugging
+        drop_console: false,
         drop_debugger: true,
         pure_funcs: ['console.debug']
       },
@@ -51,6 +51,6 @@ export default defineConfig({
     exclude: []
   },
   esbuild: {
-    target: 'es2015'
+    target: 'esnext' // Taktiež tu!
   }
 })
