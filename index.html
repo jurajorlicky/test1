@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="sk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        script-src 'self' 'unsafe-eval' 'unsafe-inline';
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data:;
+        connect-src 'self' https://ddzmuxcavpgbzhirzlqt.supabase.co;
+        font-src 'self';
+      "
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seller Hub – Tvoja Appka</title>
+    <meta name="description" content="Seller Hub – Správa produktov a predajov" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/assets/index.css" as="style" />
+
+    <!-- Critical CSS -->
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+          'Roboto', sans-serif;
+        background-color: #f8fafc;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+
+    <!-- Polyfills for Supabase -->
+    <script>
+      if (typeof Headers === 'undefined') {
+        window.Headers = class {
+          constructor(init = {}) {
+            this.map = new Map();
+            if (init) {
+              if (typeof init[Symbol.iterator] === 'function') {
+                for (const [k, v] of init) this.append(k, v);
+              } else {
+                for (const [k, v] of Object.entries(init)) this.append(k, v);
+              }
+            }
+          }
+          append(key, value) {
+            const k = key.toLowerCase();
+            const ex = this.map.get(k);
+            this.map.set(k, ex ? ex + ', ' + value : String(value));
+          }
+          delete(key) {
+            this.map.delete(key.toLowerCase());
+          }
+          get(key) {
+            return this.map.get(key.toLowerCase()) || null;
+          }
+          has(key) {
+            return this.map.has(key.toLowerCase());
+          }
+          set(key, value) {
+            this.map.set(key.toLowerCase(), String(value));
+          }
+          forEach(cb, thisArg) {
+            this.map.forEach((v, k) => cb.call(thisArg, v, k, this));
+          }
+          keys() {
+            return this.map.keys();
+          }
+          values() {
+            return this.map.values();
+          }
+          entries() {
+            return this.map.entries();
+          }
+          [Symbol.iterator]() {
+            return this.map.entries();
+          }
+        };
+      }
+
+      if (typeof Request === 'undefined') {
+        window.Request = class {
+          constructor(input, init = {}) {
+            this.url = typeof input === 'string' ? input : input.url;
+            this.method = init.method || 'GET';
+            this.headers = new Headers(init.headers);
+            this.body = init.body || null;
+            this.mode = init.mode || 'cors';
+            this.credentials = init.credentials || 'same-origin';
+          }
+        };
+      }
+
+      if (typeof Response === 'undefined') {
+        window.Response = class {
+          constructor(body, init = {}) {
+            this.body = body;
+            this.status = init.status || 200;
+            this.statusText = init.statusText || 'OK';
+            this.headers = new Headers(init.headers);
+            this.ok = this.status >= 200 && this.status < 300;
+          }
+          json() {
+            return Promise.resolve(JSON.parse(this.body));
+          }
+          text() {
+            return Promise.resolve(String(this.body));
+          }
+        };
+      }
+
+      if (typeof global === 'undefined') {
+        window.global = window;
+      }
+      if (typeof process === 'undefined') {
+        window.process = { env: {} };
+      }
+    </script>
+  </head>
+
+  <body>
+    <div id="root">
+      <div
+        style="
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          flex-direction: column;
+        "
+      >
+        <div class="loading-spinner"></div>
+        <p style="margin-top: 16px; color: #64748b;">
+          Načítava sa aplikácia...
+        </p>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
